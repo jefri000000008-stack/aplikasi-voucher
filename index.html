@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jefri Ponsel - Penjualan Voucher</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+}
+
+.header {
+    background: #0d6efd;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+}
+
+input, button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #0d6efd;
+    color: white;
+}
+
+.hapus {
+    background: #dc3545;
+    padding: 8px;
+    margin: 0;
+}
+
+.jual {
+    background: #198754;
+    padding: 8px;
+    margin: 0;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>📱 JEFRI PONSEL</h1>
+    <p>Aplikasi Penjualan Voucher</p>
+</div>
+
+<div class="container">
+
+<div class="card">
+    <h2>➕ Tambah Voucher</h2>
+
+    <input id="nama" placeholder="Nama voucher">
+    <input id="gb" placeholder="Jumlah GB">
+    <input id="hari" placeholder="Masa berlaku">
+    <input id="modal" type="number" placeholder="Harga modal">
+    <input id="harga" type="number" placeholder="Harga jual">
+    <input id="stok" type="number" placeholder="Stok">
+
+    <button onclick="tambahVoucher()">Simpan Voucher</button>
+</div>
+
+<div class="card">
+    <h2>📦 Daftar Voucher</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Voucher</th>
+                <th>GB</th>
+                <th>Hari</th>
+                <th>Jual</th>
+                <th>Stok</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+
+        <tbody id="daftar"></tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>💰 Keuntungan</h2>
+    <p class="total">
+        Total Keuntungan: Rp <span id="untung">0</span>
+    </p>
+</div>
+
+</div>
+
+<script>
+
+let voucher = JSON.parse(localStorage.getItem("voucher")) || [];
+let keuntungan = Number(localStorage.getItem("keuntungan")) || 0;
+
+function simpan() {
+    localStorage.setItem("voucher", JSON.stringify(voucher));
+    localStorage.setItem("keuntungan", keuntungan);
+}
+
+function tampilkan() {
+
+    let daftar = document.getElementById("daftar");
+
+    daftar.innerHTML = "";
+
+    voucher.forEach((v, index) => {
+
+        daftar.innerHTML += `
+        <tr>
+            <td>${v.nama}</td>
+            <td>${v.gb}</td>
+            <td>${v.hari}</td>
+            <td>Rp ${Number(v.harga).toLocaleString("id-ID")}</td>
+            <td>${v.stok}</td>
+
+            <td>
+                <button class="jual" onclick="jual(${index})">
+                    Jual
+                </button>
+
+                <button class="hapus" onclick="hapus(${index})">
+                    Hapus
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("untung").innerText =
+        keuntungan.toLocaleString("id-ID");
+}
+
+function tambahVoucher() {
+
+    let nama = document.getElementById("nama").value;
+    let gb = document.getElementById("gb").value;
+    let hari = document.getElementById("hari").value;
+    let modal = Number(document.getElementById("modal").value);
+    let harga = Number(document.getElementById("harga").value);
+    let stok = Number(document.getElementById("stok").value);
+
+    if (!nama || !harga || !stok) {
+        alert("Lengkapi data voucher!");
+        return;
+    }
+
+    voucher.push({
+        nama: nama,
+        gb: gb,
+        hari: hari,
+        modal: modal,
+        harga: harga,
+        stok: stok
+    });
+
+    simpan();
+    tampilkan();
+
+    document.getElementById("nama").value = "";
+    document.getElementById("gb").value = "";
+    document.getElementById("hari").value = "";
+    document.getElementById("modal").value = "";
+    document.getElementById("harga").value = "";
+    document.getElementById("stok").value = "";
+}
+
+function jual(index) {
+
+    if (voucher[index].stok <= 0) {
+        alert("Stok habis!");
+        return;
+    }
+
+    voucher[index].stok--;
+
+    keuntungan +=
+        voucher[index].harga - voucher[index].modal;
+
+    simpan();
+    tampilkan();
+
+    let pesan =
+        "JEFRI PONSEL%0A" +
+        "Voucher: " + voucher[index].nama + "%0A" +
+        "Paket: " + voucher[index].gb + "%0A" +
+        "Masa berlaku: " + voucher[index].hari + "%0A" +
+        "Harga: Rp " +
+        voucher[index].harga.toLocaleString("id-ID");
+
+    window.open(
+        "https://wa.me/?text=" + pesan,
+        "_blank"
+    );
+}
+
+function hapus(index) {
+
+    if (confirm("Hapus voucher ini?")) {
+        voucher.splice(index, 1);
+        simpan();
+        tampilkan();
+    }
+}
+
+tampilkan();
+
+</script>
+
+</body>
+</html>
